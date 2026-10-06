@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WB Point — Рабочее место оператора ПВЗ</title>
+  <style>
+    @font-face {
+      font-family: 'ALS Hauss';
+      src: url('/fonts/als_hauss_vf.ttf') format('truetype');
+      font-weight: 100 900;
+    }
+    :root {
+      --bg-main: #f0f2f5;
+      --bg-surface: #ffffff;
+      --primary: #7b2cbf;
+      --primary-hover: #6a24a6;
+      --primary-light: #f3e8ff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'ALS Hauss', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+    body { background: var(--bg-main); color: var(--text-main); display: flex; flex-direction: column; min-height: 100vh; }
+    header { background: #fff; border-bottom: 1px solid var(--border); color: #1e293b; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 16px; }
+    .brand-logo { width: 36px; height: 36px; object-fit: contain; }
+    .tabs-bar { display: flex; gap: 8px; background: #fff; border-bottom: 2px solid #e2e8f0; padding: 0 20px; overflow-x: auto; }
+    .tab-btn { padding: 14px 18px; border: none; background: transparent; font-size: 14px; font-weight: 700; color: #64748b; cursor: pointer; border-bottom: 3px solid transparent; }
+    .tab-btn.active { color: #7b2cbf; border-bottom-color: #7b2cbf; }
+    .tab-btn .badge { background: #f3e8ff; color: #7b2cbf; font-size: 11px; padding: 2px 7px; border-radius: 10px; margin-left: 6px; }
+    .content-area { flex: 1; display: grid; grid-template-columns: 320px 1fr; max-width: 1440px; margin: 20px auto; width: 100%; gap: 20px; padding: 0 20px; }
+    .info-panel { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+    .cell-box { background: var(--bg-main); border-radius: var(--radius-md); padding: 20px; text-align: center; }
+    .cell-number { font-size: 64px; font-weight: 900; line-height: 1; font-family: monospace; }
+    .summary-card { border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; display: flex; flex-direction: column; gap: 10px; font-size: 14px; }
+    .summary-row { display: flex; justify-content: space-between; align-items: center; }
+    .summary-total { font-size: 20px; font-weight: 900; }
+    .btn-action-primary { width: 100%; padding: 16px; background: var(--primary); color: #fff; border: none; border-radius: var(--radius-md); font-size: 16px; font-weight: 700; cursor: pointer; }
+    .btn-action-primary:hover { background: var(--primary-hover); }
+    .items-container { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+    .notification-banner { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; padding: 14px 18px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: space-between; font-size: 14px; font-weight: 500; }
+    .banner-btn { background: var(--warning); color: #fff; border: none; padding: 6px 14px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 700; cursor: pointer; }
+    .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+    .product-card { border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .product-image-wrap { width: 100%; aspect-ratio: 1/1; background: var(--bg-main); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; position: relative; font-size: 48px; }
+    .badge-status { position: absolute; top: 10px; right: 10px; padding: 4px 8px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 700; color: #fff; }
+    .badge-status.paid { background: var(--success); }
+    .badge-status.defect { background: var(--danger); }
+    .product-code { font-family: monospace; font-size: 15px; font-weight: 700; }
+    .product-name { font-size: 13px; color: var(--text-muted); }
+    .card-actions { display: flex; gap: 8px; margin-top: auto; }
+    .card-btn { flex: 1; padding: 8px; border: 1px solid var(--border); background: #fff; border-radius: var(--radius-sm); font-size: 12px; font-weight: 700; cursor: pointer; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 1000; }
+    .modal-overlay.active { display: flex; }
+    .modal-dialog { background: #fff; border-radius: var(--radius-lg); width: 100%; max-width: 480px; padding: 28px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); }
+    .modal-actions { display: flex; gap: 12px; margin-top: 20px; }
+    .modal-actions button { flex: 1; padding: 14px; border-radius: var(--radius-md); font-weight: 700; font-size: 14px; cursor: pointer; }
+    .btn-approve { background: var(--primary); color: #fff; border: none; }
+    .btn-reject { background: #fff; color: var(--danger); border: 1px solid var(--border); }
+    @media (max-width: 900px) { .content-area { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <img src="/wb_assets/images/general/wb_pvz_logo.png" alt="WB" class="brand-logo" />
+      <span>WB Point — Терминал оператора (v.1.10.0)</span>
+    </div>
+    <div style="font-size: 13px; color: var(--text-muted);">Рабочее место: ID 50001234 • Смена №2</div>
+  </header>
+
+  <div class="tabs-bar">
+    <button class="tab-btn active" id="tabIssue">📦 Выдача <span class="badge">3</span></button>
+  </div>
+
+  <div class="content-area">
+    <section class="info-panel">
+      <div class="cell-box">
+        <div style="font-size: 12px; color: var(--text-muted); font-weight: 800; text-transform: uppercase;">Номер ячейки</div>
+        <div class="cell-number" id="cellNumber">521</div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-row">
+          <span style="color: var(--text-muted);">Клиент:</span>
+          <span style="font-weight: 600;">+7 (•••) •••-75-89</span>
+        </div>
+        <div class="summary-row">
+          <span style="color: var(--text-muted);">Всего товаров:</span>
+          <span style="font-weight: 600;">3 шт.</span>
+        </div>
+        <div class="summary-row">
+          <span style="color: var(--text-muted);">Пакетов:</span>
+          <span style="font-weight: 600;">1 шт.</span>
+        </div>
+        <hr style="border: none; border-top: 1px solid var(--border);" />
+        <div class="summary-row">
+          <span class="summary-total">Итого:</span>
+          <span class="summary-total" style="color: #7b2cbf;">17 876 ₽</span>
+        </div>
+      </div>
+
+      <button class="btn-action-primary" id="btnIssue">Выдать заказ</button>
+      <button class="card-btn" style="padding: 14px;" onclick="alert('Снято с выдачи')">Снять с выдачи</button>
+    </section>
+
+    <main class="items-container">
+      <div class="notification-banner" id="ageBanner">
+        <span>⚠️ В заказе содержатся товары с возрастным ограничением (18+). Проверьте документы клиента.</span>
+        <button class="banner-btn" id="btnOpenAgeCheck">Проверить</button>
+      </div>
+
+      <div class="items-grid">
+        <article class="product-card" id="card1">
+          <div class="product-image-wrap">
+            <img src="/wb_assets/images/acceptance/item_test.png" alt="Спортивный костюм" style="max-width: 90%; max-height: 90%; object-fit: contain;" />
+            <span class="badge-status paid">Оплачен</span>
+          </div>
+          <div class="product-code">1646827 6789</div>
+          <div class="product-name">Спортивный костюм оверсайз, цвет серый, размер L</div>
+          <div style="font-weight: 800; color: #7b2cbf;">6 490 ₽</div>
+          <div class="card-actions">
+            <button class="card-btn" onclick="toggleDefect('card1')">Отметить брак</button>
+            <button class="card-btn" onclick="toggleRefusal('card1')">Отказ</button>
+          </div>
+        </article>
+
+        <article class="product-card" id="card2">
+          <div class="product-image-wrap">
+            <img src="/wb_assets/images/delivery/bag.png" alt="Пакет Wildberries" style="max-width: 90%; max-height: 90%; object-fit: contain;" />
+            <span class="badge-status paid">Оплачен</span>
+          </div>
+          <div class="product-code">1667827 7911</div>
+          <div class="product-name">Фирменный пакет Wildberries (ПВЗ)</div>
+          <div style="font-weight: 800; color: #7b2cbf;">10 ₽</div>
+          <div class="card-actions">
+            <button class="card-btn" onclick="toggleDefect('card2')">Отметить брак</button>
+            <button class="card-btn" onclick="toggleRefusal('card2')">Отказ</button>
+          </div>
+        </article>
+
+        <article class="product-card" id="card3">
+          <div class="product-image-wrap">
+            <img src="/wb_assets/images/acceptance/item_test.png" alt="Худи оверсайз" style="max-width: 90%; max-height: 90%; object-fit: contain;" />
+            <span class="badge-status paid">Оплачен</span>
+          </div>
+          <div class="product-code">1647827 4569</div>
+          <div class="product-name">Zeyd / Худи оверсайз с начесом утепленное</div>
+          <div style="font-weight: 800; color: #7b2cbf;">3 200 ₽</div>
+          <div class="card-actions">
+            <button class="card-btn" onclick="toggleDefect('card3')">Отметить брак</button>
+            <button class="card-btn" onclick="toggleRefusal('card3')">Отказ</button>
+          </div>
+        </article>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-overlay" id="ageModal">
+    <div class="modal-dialog">
+      <h3 style="font-size: 20px; font-weight: 800; margin-bottom: 8px;">Подтверждение возраста (18+)</h3>
+      <p style="font-size: 14px; color: var(--text-muted); line-height: 1.5; margin-bottom: 20px;">
+        В заказе присутствуют товары с возрастным ограничением. Попросите клиента предъявить документ, подтверждающий дату рождения.
+      </p>
+      <div style="background: var(--primary-light); border: 1px dashed var(--primary); padding: 14px; border-radius: 12px; font-size: 14px; color: var(--primary); text-align: center; font-weight: 700;">
+        Требуется подтверждение: клиент старше 18 лет
+      </div>
+      <div class="modal-actions">
+        <button class="btn-reject" id="btnRejectAge">Отказ / Нет документов</button>
+        <button class="btn-approve" id="btnApproveAge">Возраст подтвержден</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let isAgeVerified = false;
+    const ageModal = document.getElementById('ageModal');
+    const ageBanner = document.getElementById('ageBanner');
+    const btnOpenAgeCheck = document.getElementById('btnOpenAgeCheck');
+    const btnApproveAge = document.getElementById('btnApproveAge');
+    const btnRejectAge = document.getElementById('btnRejectAge');
+    const btnIssue = document.getElementById('btnIssue');
+
+    btnOpenAgeCheck.addEventListener('click', () => ageModal.classList.add('active'));
+    btnApproveAge.addEventListener('click', () => {
+      isAgeVerified = true;
+      ageModal.classList.remove('active');
+      ageBanner.style.background = '#ecfdf5';
+      ageBanner.style.borderColor = '#a7f3d0';
+      ageBanner.style.color = '#065f46';
+      ageBanner.innerHTML = '<span>✅ Возраст клиента успешно подтверждён. Все товары доступны к выдаче.</span>';
+    });
+    btnRejectAge.addEventListener('click', () => {
+      isAgeVerified = false;
+      ageModal.classList.remove('active');
+      alert('Товары 18+ сняты с выдачи.');
+    });
+    btnIssue.addEventListener('click', () => {
+      if (!isAgeVerified) {
+        ageModal.classList.add('active');
+        return;
+      }
+      try {
+        const snd = new Audio('/sounds/issued_to_client.mp3');
+        snd.play().catch(() => {});
+        setTimeout(() => {
+          new Audio('/sounds/thanks_for_order_rate_pickpoint.mp3').play().catch(() => {});
+        }, 1200);
+      } catch (e) {}
+      alert('Заказ успешно выдан!');
+      const content = document.querySelector('.content-area');
+      if (content) {
+        content.innerHTML = '<div style="background:#fff; border-radius:16px; padding:48px; text-align:center; max-width:600px; margin:40px auto; width:100%; border:1px solid var(--border); box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);">' +
+          '<div style="font-size:48px; margin-bottom:16px;">✅</div>' +
+          '<h3 style="font-size:22px; font-weight:800; margin-bottom:8px;">Заказ успешно выдан и закрыт</h3>' +
+          '<p style="font-size:13px; color:var(--text-muted); margin-bottom:24px;">Заказ исчез из очереди выдачи. Введите телефон или отсканируйте QR-код следующего клиента.</p>' +
+          '<button onclick="location.reload()" style="padding:14px 28px; background:var(--primary); color:#fff; border:none; border-radius:12px; font-weight:700; cursor:pointer; font-size:14px;">Принять следующего клиента</button>' +
+          '</div>';
+      }
+    });
+
+    function toggleDefect(cardId) {
+      const card = document.getElementById(cardId);
+      const badge = card.querySelector('.badge-status');
+      if (badge.classList.contains('defect')) {
+        badge.className = 'badge-status paid';
+        badge.textContent = 'Оплачен';
+      } else {
+        badge.className = 'badge-status defect';
+        badge.textContent = 'Брак';
+        try { new Audio('/sounds/add_defect_mark.mp3').play().catch(() => {}); } catch(e){}
+      }
+    }
+
+    function toggleRefusal(cardId) {
+      const card = document.getElementById(cardId);
+      const badge = card.querySelector('.badge-status');
+      if (badge.classList.contains('defect') || badge.textContent === 'Отказ') {
+        badge.className = 'badge-status paid';
+        badge.textContent = 'Оплачен';
+        alert('Отказ снят. Товар возвращен в выдачу.');
+      } else {
+        badge.className = 'badge-status defect';
+        badge.textContent = 'Отказ';
+        badge.style.background = '#ef4444';
+        try { new Audio('/sounds/return_accepted.mp3').play().catch(() => {}); } catch(e){}
+        alert('Зафиксирован отказ товара. Сумма заказа пересчитана.');
+      }
+    }
+  </script>
+</body>
+</html>
